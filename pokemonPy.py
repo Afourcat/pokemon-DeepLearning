@@ -116,7 +116,8 @@ def run():
                     Y_: batch_v,
                     lr: varlr
                 }))
-        varlr -= 0.000001
+    if varlr - 0.000001 > 0:
+            varlr -= 0.000001
 
 if __name__ == '__main__':
     run()
