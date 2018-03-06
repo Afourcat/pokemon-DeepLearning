@@ -35,12 +35,12 @@ def parse_file():
 def get_batchs(combats, features):
     random.shuffle(combats)
     batch_y = []
-    batch_x = combats[:100]
-    print(batch_x)
+    batch_x = list(combats[100:200])
     for row in batch_x:
+        print ("TA MERE: ", row)
         batch_y.append([1., 0.] if row.pop(2) == row[0] else [0., 1.])
-        row[0] = features[row[0] + 1]
-        row[1] = features[row[1] + 1]
+        row[0] = features[row[0] - 1]
+        row[1] = features[row[1] - 1]
     return batch_x, batch_y 
 
 def run():
@@ -49,21 +49,22 @@ def run():
     X = tf.placeholder(tf.float32, [None, 2, 10]);
     Y_ = tf.placeholder(tf.float32, [None, 2])
     
-    W1 = tf.Variable(tf.random_normal([2, 10, 50]))
+    W1 = tf.Variable(tf.random_normal([20, 50]))
     B1 = tf.Variable(tf.zeros([50]))
  
     W2 = tf.Variable(tf.random_normal([50, 2]))
     B2 = tf.Variable(tf.zeros([2]))
+    
+    X1 = tf.reshape(X, [-1, 20])
 
-    Y1 = tf.nn.relu(tf.matmul(X, W1) + B1)
-    Y1 = tf.reshape(Y1, [-1, 50])
+    Y1 = tf.nn.relu(tf.matmul(X1, W1) + B1)
     Y2 = tf.matmul(Y1, W2) + B2
 
     Y = tf.nn.softmax(Y2)
 
     tf.nn.dropout(Y1, 0.75)
     
-    cost = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y_, logits=Y2)
+    cost = tf.losses.softmax_cross_entropy(onehot_labels=Y_, logits=Y2)
     prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
 
     accurency = tf.reduce_mean(tf.cast(prediction, tf.float32))
@@ -76,42 +77,16 @@ def run():
 
     for e in range(epochs):
         batch_x, batch_y = get_batchs(combats, features)
-
         sess.run(train, feed_dict={
                 X: batch_x,
                 Y_: batch_y
             })
         if e % 500 == 0:
-            batch_x, batch_y = get_batchs(tests, features)
+            batch_w, batch_v = get_batchs(tests, features)
             print("Accurency:", sess.run(accurency, feed_dict={
-                    X: batch_x,
-                    Y_: batch_y
+                    X: batch_w,
+                    Y_: batch_v
                 }))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 if __name__ == '__main__':
     run()
